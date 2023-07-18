@@ -5,8 +5,16 @@
 
 
 def print_hi(name):
-    # 在下面的代码行中使用断点来调试脚本。
+    """
+    test string
+    :param name:
+    :return:
+
+    >>> print_hi('a')
+    Hi, a
+    """
     print(f'Hi, {name}')  # 按 Ctrl+F8 切换断点。
+    print(20 and (20 > 30))
 
 
 # 按间距中的绿色按钮以运行脚本。
