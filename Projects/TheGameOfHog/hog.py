@@ -1,10 +1,11 @@
 """CS 61A Presents The Game of Hog."""
 
-from dice import six_sided, four_sided, make_test_dice
-from ucb import main, trace, interact
+from dice import six_sided, make_test_dice
+from ucb import main
 
 GOAL_SCORE = 100  # The goal of Hog is to score 100 points.
 FIRST_101_DIGITS_OF_PI = 31415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679
+
 
 ######################
 # Phase 1: Simulator #
@@ -23,6 +24,14 @@ def roll_dice(num_rolls, dice=six_sided):
     assert num_rolls > 0, 'Must roll at least once.'
     # BEGIN PROBLEM 1
     "*** YOUR CODE HERE ***"
+    score = 0
+    flag = 0
+    for i in range(num_rolls):
+        point = dice()
+        if point == 1:
+            flag = 1
+        score += point
+    return 1 if flag == 1 else score
     # END PROBLEM 1
 
 
@@ -33,15 +42,14 @@ def free_bacon(score):
     """
     assert score < 100, 'The game should be over.'
     pi = FIRST_101_DIGITS_OF_PI
-
     # Trim pi to only (score + 1) digit(s)
     # BEGIN PROBLEM 2
     "*** YOUR CODE HERE ***"
     # END PROBLEM 2
+    pi = pi // pow(10, 100 - score)
+    return pi % 10 + 3 if score != 0 else 6
 
-    return pi % 10 + 3
-
-
+print("%%%%",free_bacon(80))
 def take_turn(num_rolls, opponent_score, dice=six_sided):
     """Simulate a turn rolling NUM_ROLLS dice, which may be 0 (Free Bacon).
     Return the points scored for the turn by the current player.
@@ -57,6 +65,10 @@ def take_turn(num_rolls, opponent_score, dice=six_sided):
     assert opponent_score < 100, 'The game should be over.'
     # BEGIN PROBLEM 3
     "*** YOUR CODE HERE ***"
+    if num_rolls > 0:
+        return roll_dice(num_rolls, dice)
+    else:
+        return free_bacon(opponent_score)
     # END PROBLEM 3
 
 
@@ -80,6 +92,13 @@ def swine_align(player_score, opponent_score):
     # BEGIN PROBLEM 4a
     "*** YOUR CODE HERE ***"
     # END PROBLEM 4a
+    score1 = player_score
+    score2 = opponent_score
+    if not score2 or not score1:
+        return False
+    while (score2 != 0):
+        score1, score2 = score2, score1 % score2
+    return False if score1 < 10 else True
 
 
 def pig_pass(player_score, opponent_score):
@@ -101,6 +120,9 @@ def pig_pass(player_score, opponent_score):
     """
     # BEGIN PROBLEM 4b
     "*** YOUR CODE HERE ***"
+    if player_score < opponent_score < player_score + 3:
+        return True
+    return False
     # END PROBLEM 4b
 
 
@@ -140,7 +162,26 @@ def play(strategy0, strategy1, score0=0, score1=0, dice=six_sided,
     who = 0  # Who is about to take a turn, 0 (first) or 1 (second)
     # BEGIN PROBLEM 5
     "*** YOUR CODE HERE ***"
+
+    def add_score(current_player_score, opponent_player_score, strategy):
+        while True:                                         ## 注意每一回合需要重置抛掷点数，因为策略是根据点数走的
+            num_roll = strategy(current_player_score, opponent_player_score)
+            current_player_score += take_turn(num_rolls=num_roll, opponent_score=opponent_player_score, dice=dice)
+            if current_player_score >= goal:
+                return current_player_score, opponent_player_score, False
+            if not extra_turn(current_player_score, opponent_player_score) or current_player_score >= goal:
+                break
+        return current_player_score, opponent_player_score, current_player_score < goal
+    flag = 1
+    while flag:
+        current_score,opponent_score,strategy = (score0,score1,strategy0) if not who else (score1,score0,strategy1)
+        if who:
+            score1, score0, flag = add_score(current_score,opponent_score,strategy)
+        else:
+            score0, score1, flag = add_score(current_score,opponent_score,strategy)
+        who = other(who)
     # END PROBLEM 5
+
     # (note that the indentation for the problem 6 prompt (***YOUR CODE HERE***) might be misleading)
     # BEGIN PROBLEM 6
     "*** YOUR CODE HERE ***"
@@ -172,6 +213,7 @@ def announce_lead_changes(last_leader=None):
     >>> f5 = f4(15, 13)
     Player 0 takes the lead by 2
     """
+
     def say(score0, score1):
         if score0 > score1:
             leader = 0
@@ -182,6 +224,7 @@ def announce_lead_changes(last_leader=None):
         if leader != None and leader != last_leader:
             print('Player', leader, 'takes the lead by', abs(score0 - score1))
         return announce_lead_changes(leader)
+
     return say
 
 
@@ -201,8 +244,10 @@ def both(f, g):
     Player 0 now has 10 and Player 1 now has 17
     Player 1 takes the lead by 7
     """
+
     def say(score0, score1):
         return both(f(score0, score1), g(score0, score1))
+
     return say
 
 
@@ -249,8 +294,10 @@ def always_roll(n):
     >>> strategy(99, 99)
     5
     """
+
     def strategy(score, opponent_score):
         return n
+
     return strategy
 
 
@@ -325,7 +372,6 @@ def run_experiments():
     "*** You may add additional experiments as you wish ***"
 
 
-
 def bacon_strategy(score, opponent_score, cutoff=8, num_rolls=6):
     """This strategy rolls 0 dice if that gives at least CUTOFF points, and
     rolls NUM_ROLLS otherwise.
@@ -353,6 +399,7 @@ def final_strategy(score, opponent_score):
     # BEGIN PROBLEM 12
     return 6  # Replace this statement
     # END PROBLEM 12
+
 
 ##########################
 # Command Line Interface #
