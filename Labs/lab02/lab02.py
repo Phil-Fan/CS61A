@@ -132,7 +132,7 @@ def cycle(f1, f2, f3):
             if n == 0:
                 return x
             else:
-                return func_list[(n-1)%3](d(n-1)(x))
+                return func_list[(n-1)%3](d(n-1)(x)) #要注意这里需要把d(n-1)(x)传给递归的函数
         return calc
     return d
 
