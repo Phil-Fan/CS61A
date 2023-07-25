@@ -49,7 +49,6 @@ def free_bacon(score):
     pi = pi // pow(10, 100 - score)
     return pi % 10 + 3 if score != 0 else 6
 
-print("%%%%",free_bacon(80))
 def take_turn(num_rolls, opponent_score, dice=six_sided):
     """Simulate a turn rolling NUM_ROLLS dice, which may be 0 (Free Bacon).
     Return the points scored for the turn by the current player.
@@ -164,27 +163,36 @@ def play(strategy0, strategy1, score0=0, score1=0, dice=six_sided,
     "*** YOUR CODE HERE ***"
 
     def add_score(current_player_score, opponent_player_score, strategy):
-        while True:                                         ## 注意每一回合需要重置抛掷点数，因为策略是根据点数走的
+        while True:  # 注意每一回合需要重置抛掷点数，因为策略是根据点数走的
             num_roll = strategy(current_player_score, opponent_player_score)
             current_player_score += take_turn(num_rolls=num_roll, opponent_score=opponent_player_score, dice=dice)
+            nonlocal say
+            if not who:
+                say = say(current_player_score, opponent_player_score)
+            else:
+                say = say(opponent_player_score,current_player_score)
+
             if current_player_score >= goal:
                 return current_player_score, opponent_player_score, False
             if not extra_turn(current_player_score, opponent_player_score) or current_player_score >= goal:
                 break
         return current_player_score, opponent_player_score, current_player_score < goal
+
     flag = 1
     while flag:
-        current_score,opponent_score,strategy = (score0,score1,strategy0) if not who else (score1,score0,strategy1)
+        current_score, opponent_score, strategy = (score0, score1, strategy0) if not who else (
+            score1, score0, strategy1)
         if who:
-            score1, score0, flag = add_score(current_score,opponent_score,strategy)
+            score1, score0, flag = add_score(current_score, opponent_score, strategy)
         else:
-            score0, score1, flag = add_score(current_score,opponent_score,strategy)
+            score0, score1, flag = add_score(current_score, opponent_score, strategy)
         who = other(who)
     # END PROBLEM 5
 
     # (note that the indentation for the problem 6 prompt (***YOUR CODE HERE***) might be misleading)
     # BEGIN PROBLEM 6
     "*** YOUR CODE HERE ***"
+    # the code is included up
     # END PROBLEM 6
     return score0, score1
 
@@ -273,6 +281,14 @@ def announce_highest(who, last_score=0, running_high=0):
     assert who == 0 or who == 1, 'The who argument should indicate a player.'
     # BEGIN PROBLEM 7
     "*** YOUR CODE HERE ***"
+    def say(score0, score1):
+        score = score0 if who == 0 else score1
+        high = running_high
+        if score - last_score > high:
+            high = score - last_score
+            print(score - last_score,"point(s)! The most yet for Player",who)
+        return announce_highest(who, score, high)
+    return say
     # END PROBLEM 7
 
 
@@ -315,6 +331,12 @@ def make_averaged(original_function, trials_count=1000):
     """
     # BEGIN PROBLEM 8
     "*** YOUR CODE HERE ***"
+    def average_func(*args):
+        cnt = 0
+        for i in range(trials_count):
+            cnt += original_function(*args)
+        return cnt/trials_count
+    return average_func
     # END PROBLEM 8
 
 
@@ -329,8 +351,16 @@ def max_scoring_num_rolls(dice=six_sided, trials_count=1000):
     """
     # BEGIN PROBLEM 9
     "*** YOUR CODE HERE ***"
+    flag = 1
+    max_cnt = 0
+    for i in range(1, 11):
+        cnt = make_averaged(roll_dice,trials_count)(i,dice)
+        #print("DEBUG:",cnt)
+        if cnt > max_cnt:
+            max_cnt = cnt
+            flag = i
+    return flag
     # END PROBLEM 9
-
 
 def winner(strategy0, strategy1):
     """Return 0 if strategy0 wins against strategy1, and 1 otherwise."""
@@ -377,7 +407,12 @@ def bacon_strategy(score, opponent_score, cutoff=8, num_rolls=6):
     rolls NUM_ROLLS otherwise.
     """
     # BEGIN PROBLEM 10
-    return 6  # Replace this statement
+    pre_score = free_bacon(opponent_score)
+    if pre_score >= cutoff:
+        return 0
+    else:
+        return num_rolls
+     # Replace this statement
     # END PROBLEM 10
 
 
@@ -387,9 +422,14 @@ def extra_turn_strategy(score, opponent_score, cutoff=8, num_rolls=6):
     Otherwise, it rolls NUM_ROLLS.
     """
     # BEGIN PROBLEM 11
-    return 6  # Replace this statement
+    predict_score = score + free_bacon(opponent_score)
+    if extra_turn(predict_score,opponent_score):
+        return 0
+    elif not bacon_strategy(score,opponent_score,cutoff,num_rolls):
+        return 0
+    else:
+        return num_rolls
     # END PROBLEM 11
-
 
 def final_strategy(score, opponent_score):
     """Write a brief description of your final strategy.
