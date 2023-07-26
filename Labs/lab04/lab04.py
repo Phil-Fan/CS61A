@@ -19,8 +19,8 @@ def skip_add(n):
     True
     """
     "*** YOUR CODE HERE ***"
-
-
+    from operator import add
+    return (lambda f: lambda n: 0 if n <= 0 else add(n,f(f)(n-2)))(lambda f: lambda n: 0 if n <=0 else add(n,f(f)(n-2)))(n)
 def summation(n, term):
 
     """Return the sum of the first n terms in the sequence defined by term.
@@ -41,6 +41,11 @@ def summation(n, term):
     """
     assert n >= 1
     "*** YOUR CODE HERE ***"
+    # if n == 1:
+    #     return term(1)
+    # else:
+    #     return term(n)+summation(n-1,term)
+    return (lambda f:lambda n: term(1) if n == 1 else term(n)+f(f)(n-1))(lambda f:lambda n: term(1) if n == 1 else term(n)+f(f)(n-1))(n)
 
 
 def paths(m, n):
@@ -57,6 +62,14 @@ def paths(m, n):
     1
     """
     "*** YOUR CODE HERE ***"
+    def cnt(x,y):
+        if x>=m or y >=n or x < 0 or y < 0:
+            return 0
+        if x == 0 and y == 0:
+            return 1
+        else:
+            return cnt(x,y-1) + cnt(x-1,y)
+    return cnt(m-1,n-1)
 
 
 
@@ -105,9 +118,33 @@ def max_subseq(n, t):
     5
     """
     "*** YOUR CODE HERE ***"
+    seq = str(n)
+    flag = [0]*len(str(n))
+    outcome = 0
+    def find_subsequence(length,start,current_subsequence):
+        nonlocal outcome,flag
+
+        if length == 0:
+            outcome = max(outcome,int(''.join(map(str, current_subsequence))))
+            return
+        for i in range(start,len(seq)):
+            if flag[i] == 0 and len(current_subsequence) < t:
+                current_subsequence.append(seq[i])
+                flag[i] = 1
+                find_subsequence(length-1,i+1,current_subsequence)
+                current_subsequence.pop()
+                flag[i] = 0
+        return outcome
+
+    if t == 0:
+        return 0
+    else:
+        return find_subsequence(min(len(seq),t),0,[])
 
 
-def add_chars(w1, w2):
+
+
+def add_chars(w1='', w2=''):
     """
     Return a string containing the characters you need to add to w1 to get w2.
 
@@ -134,4 +171,13 @@ def add_chars(w1, w2):
     True
     """
     "*** YOUR CODE HERE ***"
+    if len(w1) == 0:
+        return w2
+    else :
+        print("DEBUG:",w1,w2)
+        return add_chars(w1[-1:0:-1],w2.replace(w1[0],'',1))
+
+
+
+
 
