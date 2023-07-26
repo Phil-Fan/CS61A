@@ -23,6 +23,10 @@ def num_eights(x):
     True
     """
     "*** YOUR CODE HERE ***"
+    if 0 <= x < 10:
+        return 1 if x == 8 else 0
+    else :
+        return num_eights(x%10) + num_eights(x//10)
 
 
 def pingpong(n):
@@ -58,6 +62,16 @@ def pingpong(n):
     True
     """
     "*** YOUR CODE HERE ***"
+    def calc(x):
+        if 0 <= x < 8:
+            return 0
+        return 1+calc(x-1) if (num_eights(x) >= 1 or x % 8 == 0) else calc(x-1)
+    if n == 1:
+        return 1
+
+    print("DEBUG: ",n,calc(n))
+    return pow(-1,calc(n-1)) + pingpong(n-1)
+
 
 
 def missing_digits(n):
@@ -88,27 +102,27 @@ def missing_digits(n):
     True
     """
     "*** YOUR CODE HERE ***"
+    digit_list = list(map(int,str(n)))
+    #print(digit_list)
+    a = [i for i in range(digit_list[0],digit_list[-1]+1) if digit_list.count(i) == 0]
+    print(len(a))
 
 
 def next_largest_coin(coin):
-    """Return the next coin. 
-    >>> next_largest_coin(1)
-    5
-    >>> next_largest_coin(5)
-    10
-    >>> next_largest_coin(10)
-    25
-    >>> next_largest_coin(2) # Other values return None
+    """Return the next coin.
     """
-    if coin == 1:
-        return 5
-    elif coin == 5:
-        return 10
+    if coin == 5:
+        return 1
     elif coin == 10:
-        return 25
+        return 5
+    elif coin == 25:
+        return 10
+    else:
+        return coin
 
 
-def count_coins(total):
+
+def count_coins(total):#放苹果问题 #背包问题
     """Return the number of ways to make change for total using coins of value of 1, 5, 10, 25.
     >>> count_coins(15)
     6
@@ -124,7 +138,16 @@ def count_coins(total):
     True
     """
     "*** YOUR CODE HERE ***"
-
+    def f(n,m):
+        if n < 0:
+            return 0
+        elif n == 0:
+            return 1
+        elif m == 1:
+            return 1
+        else:
+            return f(n-m,m) + f(n,next_largest_coin(m))
+    return f(total,25)
 
 from operator import sub, mul
 
@@ -138,5 +161,6 @@ def make_anonymous_factorial():
     >>> check(HW_SOURCE_FILE, 'make_anonymous_factorial', ['Assign', 'AugAssign', 'FunctionDef', 'Recursion'])
     True
     """
-    return 'YOUR_EXPRESSION_HERE'
+    #return (lambda f: lambda n: 1 if n == 1 else mul(n, f(f)(sub(n, 1))))(lambda f: lambda n: 1 if n == 1 else mul(n, f(f)(sub(n, 1))))
 
+    return (lambda f: lambda n: 1 if n == 1 else mul(n,f(f)(n-1)))(lambda f: lambda n: 1 if n == 1 else mul(n,f(f)(n-1)))
